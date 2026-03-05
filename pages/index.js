@@ -74,25 +74,14 @@ export default function Home() {
       .join("\n\n");
 
     try {
-      const response = await fetch("https://api.anthropic.com/v1/messages", {
+      const response = await fetch("/api/match", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: "claude-sonnet-4-20250514",
-          max_tokens: 1000,
-          system: `You are a surgical assistant. Given a surgeon's personal technique notes and a theatre list, extract the most relevant tips for each procedure.
-Respond ONLY with a JSON array, no preamble, no markdown fences.
-Format: [{"procedure": "...", "consultant": "...", "tips": ["tip1", "tip2", ...], "closure": "...", "found": true/false}]
-If no notes found for a procedure, set found: false and tips: ["No personal notes found for this procedure"].
-Keep tips concise and exactly as written in the notes. Extract consultant name if present in the notes.`,
-          messages: [{
-            role: "user",
-            content: `MY SURGICAL NOTES FROM NOTION:\n${notesText}\n\nTOMORROW'S LIST:\n${theatreList}\n\nFor each procedure on the list, find and return the relevant tips from my notes.`
-          }]
-        })
+        body: JSON.stringify({ notes: notesText, theatreList })
       });
 
       const data = await response.json();
+      if (data.error) throw new Error(data.error);
       const text = data.content.map(i => i.text || "").join("");
       const clean = text.replace(/```json|```/g, "").trim();
       const parsed = JSON.parse(clean);
