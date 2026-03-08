@@ -37,7 +37,13 @@ Keep tips concise and exactly as written in the notes. Extract consultant name i
     });
 
     const data = await response.json();
-    return res.status(200).json(data);
+    if (data.error) {
+      return res.status(500).json({ error: data.error.message || JSON.stringify(data.error) });
+    }
+    const text = data.content.map(i => i.text || "").join("");
+    const clean = text.replace(/```json|```/g, "").trim();
+    const parsed = JSON.parse(clean);
+    return res.status(200).json({ results: parsed });
   } catch (error) {
     return res.status(500).json({ error: "Failed to call Claude API", detail: error.message });
   }
