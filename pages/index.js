@@ -89,10 +89,7 @@ export default function Home() {
 
       const data = await response.json();
       if (data.error) throw new Error(data.error);
-      const text = data.content.map(i => i.text || "").join("");
-      const clean = text.replace(/```json|```/g, "").trim();
-      const parsed = JSON.parse(clean);
-      setResults(parsed);
+      setResults(data.results);
     } catch (err) {
       setError("Something went wrong: " + err.message);
     }
