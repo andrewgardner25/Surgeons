@@ -22,8 +22,15 @@ async function getPageContent(pageId) {
   return data.results.map(block => {
     const type = block.type;
     const content = block[type];
-    if (!content || !content.rich_text) return "";
-    return content.rich_text.map(t => t.plain_text).join("");
+    if (!content) return "";
+    // Handle rich_text blocks (paragraph, heading, bulleted_list_item, numbered_list_item, etc.)
+    if (content.rich_text) {
+      const text = content.rich_text.map(t => t.plain_text).join("");
+      if (type === "bulleted_list_item") return `- ${text}`;
+      if (type === "numbered_list_item") return `• ${text}`;
+      return text;
+    }
+    return "";
   }).filter(Boolean).join("\n");
 }
 
@@ -87,7 +94,7 @@ export default function Home() {
       const parsed = JSON.parse(clean);
       setResults(parsed);
     } catch (err) {
-      setError("Something went wrong. Please try again.");
+      setError("Something went wrong: " + err.message);
     }
     setLoading(false);
   };
